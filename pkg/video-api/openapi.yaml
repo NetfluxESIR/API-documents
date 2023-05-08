@@ -6,8 +6,80 @@ info:
 servers:
   - url: 'https'
 paths:
+  /api/v1/users/register:
+    post:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - users
+      summary: Register a user, only for admin
+      operationId: registerUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/User'
+                - $ref: '#/components/schemas/RobotAccount'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+                    description: The token of the user
+        '400':
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflict
+        '500':
+          description: Internal Server Error
+
+  /api/v1/users/login:
+    post:
+      tags:
+        - users
+      summary: Login a user
+      operationId: loginUser  
+      requestBody: 
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/User'
+                - $ref: '#/components/schemas/RobotAccount'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                properties:
+                  token:
+                    type: string
+                    description: The token of the user
+        '400':
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          description: Internal Server Error
+      
   /api/v1/videos:
     get:
+      security:
+        - bearerAuth: [ ]
       tags:
           - videos
       summary: Get all videos
@@ -41,8 +113,14 @@ paths:
                   $ref: '#/components/schemas/Video'
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          description: Internal Server Error
 
     post:
+      security:
+        - bearerAuth: [ ]
       tags:
           - videos
       summary: Create a video
@@ -61,11 +139,19 @@ paths:
                 $ref: '#/components/schemas/Video'
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
         '409':
           description: Conflict
+        '500':
+          description: Internal Server Error
 
   /api/v1/videos/{videoId}:
     get:
+      security:
+        - bearerAuth: [ ]
       tags:
           - videos
       summary: Get a video
@@ -86,10 +172,14 @@ paths:
                   $ref: '#/components/schemas/Video'
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Not Found
 
     put:
+      security:
+        - bearerAuth: [ ]
       tags:
           - videos
       summary: Update a video
@@ -115,10 +205,16 @@ paths:
                 $ref: '#/components/schemas/Video'
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
 
     delete:
+      security:
+        - bearerAuth: [ ]
       tags:
           - videos
       summary: Delete a video
@@ -135,10 +231,16 @@ paths:
             description: No Content
         '400':
             description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
             description: Not Found
+        '500':
+          description: Internal Server Error
   /api/v1/processing/{videoId}:
     get:
+      security:
+        - bearerAuth: [ ]
       tags:
         - processing
       summary: Get a processing
@@ -158,11 +260,17 @@ paths:
                   $ref: '#/components/schemas/Processing'
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
 
   /api/v1/processing/{videoId}/status:
     post:
+      security:
+        - bearerAuth: [ ]
       tags:
         - processing
       summary: Update the status of a processing
@@ -195,10 +303,16 @@ paths:
           description: OK
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
   /api/v1/processing/{videoId}/steps:
     post:
+      security:
+        - bearerAuth: [ ]
       tags:
         - processing
       summary: Update the step of a processing
@@ -242,12 +356,61 @@ paths:
           description: OK
         '400':
           description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '404':
           description: Not Found
+        '500':
+          description: Internal Server Error
 
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    Unauthorized:
+      description: Access token is missing or invalid
   schemas:
+    User:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: The email of the user
+        password:
+          type: string
+          description: The password of the user
+        role:
+          type: string
+          description: The role of the user
+          enum:
+            - ADMIN
+            - USER
+    RobotAccount:
+      type: object
+      required:
+          - name
+          - password
+      properties:
+        name:
+          type: string
+          description: The name of the robot account
+        password:
+          type: string
+          description: The password of the robot account
+        role:
+          type: string
+          description: The role of the robot account
+          enum:
+            - ROBOT
+
     Video:
       type: object
       required:
@@ -345,3 +508,6 @@ components:
         log:
           type: string
           description: The message of the processing
+
+security:
+  - bearerAuth: []
