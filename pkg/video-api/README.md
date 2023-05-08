@@ -25,12 +25,14 @@ sequenceDiagram
             loop Processing steps
                 alt Step is in error
                     break Processing
-                        S ->> A: POST /processing/{videoId}/status : {statusEnum : ERROR}
                         S ->> A: POST /processing/{videoId}/steps : {stepEnum (DOWNSCALING, LANG_IDENT, CAPTION, ANIMAL_DETECT), log}
+                        A ->> S: 200 OK
+                        S ->> A: POST /processing/{videoId}/status : {statusEnum : ERROR}
+                        A ->> S: 200 OK
                     end
                 else Step is not in error
                     S ->> A: POST /processing/{videoId}/steps : {stepEnum (DOWNSCALING, LANG_IDENT, CAPTION, ANIMAL_DETECT), log}
-                    A ->> S: 201 CREATED
+                    A ->> S: 200 OK
                 end
             end
             deactivate S

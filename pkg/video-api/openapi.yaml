@@ -64,14 +64,14 @@ paths:
         '409':
           description: Conflict
 
-  /api/v1/videos/{id}:
+  /api/v1/videos/{videoId}:
     get:
       tags:
           - videos
       summary: Get a video
       operationId: getVideo
       parameters:
-      - name: id
+      - name: videoId
         in: path
         required: true
         schema:
@@ -95,7 +95,7 @@ paths:
       summary: Update a video
       operationId: updateVideo
       parameters:
-        - name: id
+        - name: videoId
           in: path
           required: true
           schema:
@@ -124,7 +124,7 @@ paths:
       summary: Delete a video
       operationId: deleteVideo
       parameters:
-      - name: id
+      - name: videoId
         in: path
         required: true
         schema:
@@ -137,14 +137,14 @@ paths:
             description: Bad Request
         '404':
             description: Not Found
-  /api/v1/processing/{id}:
+  /api/v1/processing/{videoId}:
     get:
       tags:
         - processing
       summary: Get a processing
       operationId: getProcessing
       parameters:
-      - name: id
+      - name: videoId
         in: path
         required: true
         schema:
@@ -161,13 +161,14 @@ paths:
         '404':
           description: Not Found
 
-    put:
+  /api/v1/processing/{videoId}/status:
+    post:
       tags:
-          - processing
-      summary: Update a processing
-      operationId: updateProcessing
+        - processing
+      summary: Update the status of a processing
+      operationId: updateProcessingStatus
       parameters:
-        - name: id
+        - name: videoId
           in: path
           required: true
           schema:
@@ -177,14 +178,68 @@ paths:
         content:
           application/json:
             schema:
-                $ref: '#/components/schemas/Processing'
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  description: The status of the processing
+                  enum:
+                    - PENDING
+                    - STARTED
+                    - ERROR
+                    - FINISHED
       responses:
         '200':
           description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Processing'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+  /api/v1/processing/{videoId}/steps:
+    post:
+      tags:
+        - processing
+      summary: Update the step of a processing
+      operationId: updateProcessingStep
+      parameters:
+        - name: videoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - step
+              properties:
+                step:
+                  type: string
+                  description: The step of the processing
+                  enum:
+                    - NONE
+                    - DOWNSCALE
+                    - LANG_DETECTION
+                    - TRANSCRIPTION
+                    - ANIMAL_DETECTION
+                status:
+                  type: string
+                  description: The status of the step
+                  enum:
+                    - STARTED
+                    - ERROR
+                    - FINISHED
+                logs:
+                  type: string
+                  description: The logs of the step
+      responses:
+        '200':
+          description: OK
         '400':
           description: Bad Request
         '404':
@@ -223,8 +278,8 @@ components:
           format: uuid
           description: The unique identifier of the processing
         labels:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             type: string
           description: The labels of the video
         language:
@@ -237,10 +292,6 @@ components:
             type: string
     Processing:
       type: object
-      required:
-        - id
-        - status
-        - videoId
       properties:
         id:
           type: string
