@@ -1,0 +1,296 @@
+openapi: 3.0.3
+info:
+  title: Netflux ESIR
+  description: Netflux ESIR
+  version: 1.0.0
+servers:
+  - url: 'https'
+paths:
+  /api/v1/videos:
+    get:
+      tags:
+          - videos
+      summary: Get all videos
+      operationId: getVideos
+      parameters:
+        - name: limit
+          description: The number of items to return
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: offset
+          in: query
+          description: The number of items to skip before starting to collect the result set
+          required: false
+          schema:
+              type: integer
+              minimum: 0
+              default: 0
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Video'
+        '400':
+          description: Bad Request
+
+    post:
+      tags:
+          - videos
+      summary: Create a video
+      operationId: createVideo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Video'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+        '400':
+          description: Bad Request
+        '409':
+          description: Conflict
+
+  /api/v1/videos/{id}:
+    get:
+      tags:
+          - videos
+      summary: Get a video
+      operationId: getVideo
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Video'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+
+    put:
+      tags:
+          - videos
+      summary: Update a video
+      operationId: updateVideo
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Video'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Video'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+
+    delete:
+      tags:
+          - videos
+      summary: Delete a video
+      operationId: deleteVideo
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '204':
+            description: No Content
+        '400':
+            description: Bad Request
+        '404':
+            description: Not Found
+  /api/v1/processing/{id}:
+    get:
+      tags:
+        - processing
+      summary: Get a processing
+      operationId: getProcessing
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Processing'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+
+    put:
+      tags:
+          - processing
+      summary: Update a processing
+      operationId: updateProcessing
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+                $ref: '#/components/schemas/Processing'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Processing'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+
+
+components:
+  schemas:
+    Video:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - videoUrl
+        - captionUrl
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the video
+        title:
+          type: string
+          description: The title of the video
+        description:
+          type: string
+          description: The description of the video
+        videoUrl:
+          type: string
+          description: The url of the video
+        captionUrl:
+          type: string
+          description: The url of the caption
+        processingId:
+          type: string
+          format: uuid
+          description: The unique identifier of the processing
+        labels:
+          type: array
+          items:
+            type: string
+          description: The labels of the video
+        language:
+          type: string
+          description: The language of the video
+        metadata:
+          type: object
+          description: The metadata of the video
+          additionalProperties:
+            type: string
+    Processing:
+      type: object
+      required:
+        - id
+        - status
+        - videoId
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: The unique identifier of the processing
+        status:
+          type: string
+          description: The status of the processing
+          enum:
+            - PENDING
+            - STARTED
+            - ERROR
+            - FINISHED
+        videoId:
+          type: string
+          format: uuid
+          description: The unique identifier of the video
+        currentStep:
+          type: string
+          description: The step of the processing
+          enum:
+            - NONE
+            - DOWNSCALE
+            - LANG_DETECTION
+            - TRANSCRIPTION
+            - ANIMAL_DETECTION
+            - FINISHED
+        steps:
+          type: array
+          items:
+              $ref: '#/components/schemas/ProcessingStep'
+    ProcessingStep:
+      type: object
+      properties:
+        step:
+          type: string
+          description: The step of the processing
+          enum:
+            - NONE
+            - DOWNSCALE
+            - LANG_DETECTION
+            - TRANSCRIPTION
+            - ANIMAL_DETECTION
+            - FINISHED
+        status:
+          type: string
+          description: The status of the processing
+          enum:
+            - STARTED
+            - FINISHED
+        log:
+          type: string
+          description: The message of the processing
