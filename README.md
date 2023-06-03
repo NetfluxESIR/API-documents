@@ -8,5 +8,5 @@ At first, we were thinking about add more documents relative to normative aspect
 
 You can find the following documents in this repository:
 
-- [Video API documentation](./pkgs/video-api/README.md): the API documentation of the video API. The openapi specification is available [here](./pkgs/video-api/openapi.yaml) and are
+- [Video API documentation](./pkg/video-api/README.md): the API documentation of the video API. The openapi specification is available [here](./pkg/video-api/openapi.yaml) and are
 used to generate the backend code.
