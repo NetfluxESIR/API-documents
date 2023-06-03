@@ -6,6 +6,41 @@ info:
 servers:
   - url: 'https'
 paths:
+  /api/v1/presignedurl/{key}:
+    get:
+      security:
+        - bearerAuth: [ ]
+      tags:
+        - presignedurl
+      summary: Get a presigned url
+      operationId: getPresignedUrl
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - url
+                properties:
+                  url:
+                    type: string
+                    description: The presigned url
+        '400':
+          description: Bad Request
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Not Found
+        '500':
+          description: Internal Server Error
   /api/v1/users/register:
     post:
       security:
@@ -18,9 +53,7 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/User'
-                - $ref: '#/components/schemas/RobotAccount'
+              $ref: '#/components/schemas/Account'
       responses:
         '201':
           description: Created
@@ -53,9 +86,7 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
-                - $ref: '#/components/schemas/User'
-                - $ref: '#/components/schemas/RobotAccount'
+              $ref: '#/components/schemas/Account'
       responses:
         '200':
           description: OK
@@ -348,7 +379,7 @@ paths:
                     - STARTED
                     - ERROR
                     - FINISHED
-                logs:
+                log:
                   type: string
                   description: The logs of the step
       responses:
@@ -374,7 +405,7 @@ components:
     Unauthorized:
       description: Access token is missing or invalid
   schemas:
-    User:
+    Account:
       type: object
       required:
         - email
@@ -393,32 +424,12 @@ components:
           enum:
             - ADMIN
             - USER
-    RobotAccount:
-      type: object
-      required:
-          - name
-          - password
-      properties:
-        name:
-          type: string
-          description: The name of the robot account
-        password:
-          type: string
-          description: The password of the robot account
-        role:
-          type: string
-          description: The role of the robot account
-          enum:
             - ROBOT
-
     Video:
       type: object
       required:
-        - id
         - title
         - description
-        - videoUrl
-        - captionUrl
       properties:
         id:
           type: string
@@ -505,6 +516,7 @@ components:
           enum:
             - STARTED
             - FINISHED
+            - ERROR
         log:
           type: string
           description: The message of the processing
